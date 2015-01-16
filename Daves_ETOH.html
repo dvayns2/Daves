@@ -1,0 +1,145 @@
+
+<html>
+
+<head>
+<style>
+  body {
+    background-color: #efefef;
+  }
+
+  label {
+    display: block;
+  }
+</style>
+</head>
+
+<body>
+  <form onSubmit="return false;">
+    <label>
+      Drink:
+      <select id="drinkType">
+        <option value="Screwdriver">Screwdriver</option>
+        <option value="Cider">Cider</option>
+        <option value="Vodka Shot">Vodka Shot</option>
+      </select>
+    </label>
+
+    <label>
+      Strength:
+      <input id="strength" type="text" />
+    </label>
+
+    <label>
+      Minutes:
+      <input id="minutes" type="text" />
+    </label>
+
+    <button id="button">Add!</button>
+
+  </form>
+
+  <h1>Queue:</h1>
+  <ul id="queue">
+  </ul>
+
+</body>
+
+<script type="text/javascript">
+var button = document.getElementById('button');
+button.addEventListener('click', onButtonClick);
+
+
+// Re-render the drink queue every minute so update the times.
+var interval=setInterval(renderDrinkQueue, 6000);
+
+var drinkQueue = [];
+var completed_drinks = [];
+
+function onButtonClick(event) {
+  var strengthInput = document.getElementById('strength');//user strength
+  var minutesInput = document.getElementById('minutes');//user minutes
+  var drinkTypeInput = document.getElementById('drinkType');//user drinktype
+  var initialDate = new Date;//Date + time is initialized
+  var initialTime = initialDate.toLocaleString();//get the current time
+
+  var strength = strengthInput.value;//new var set to the strength
+  var minutes = minutesInput.value;//new var set to the minutes
+  var drinkType = drinkTypeInput.value;//new drinktype set to chosen drinktype
+
+  // (1) Add data about the selected drink to the queue
+
+  drinkQueue.push({ //build the queue to store the information into the list
+    strength: strengthInput.value,
+    minutes: minutesInput.value,
+    drinkType: drinkTypeInput.value,
+    initialDate: initialDate,
+    timeRemain: initialDate,
+  });
+
+  strengthInput.value = '';//refresh all three vars for next item to be queued
+  minutesInput.value = '';
+  drinkTypeInput.value = 'Screwdriver';
+
+  renderDrinkQueue();
+}
+
+function renderDrinkQueue() {
+  var queueElement = document.getElementById('queue');
+  queueElement.innerHTML = '';
+
+  // Clear out the current queue
+  // (2) Build the list from the stored drink information.
+  drinkQueue.forEach(function(drink) {
+    var strength = drink.stremngth;
+    var minutes = drink.minutes;
+    var drinkType = drink.drinkType;
+    var initialDate = drink.initialDate;
+    var timeRemain = drink.timeRemain;
+    var timeDiff = timeRemaining(initialDate, minutes);
+    var currentTime = Date.now();
+
+    // var startbutton=document.createElement("button");
+    // startbutton.innerHTML="Start";
+    var stopbutton=document.createElement('button');
+    var text=document.createTextNode('Stop');
+    stopbutton.appendChild(text);
+    stopbutton.addEventListener('click', onButtonClick_stop);
+    var startbutton=document.createElement('button');
+    var text2=document.createTextNode('Start');
+    startbutton.appendChild(text2);
+    startbutton.addEventListener('click', onButtonClick_start);
+
+    var drinkListItem = document.createElement('li');
+    drinkListItem.innerText = drinkType + ': ' + strength + ' in ' + minutes + ' minutes' + 'Time Started: ' + initialDate + ' Current time: ' + currentTime + ' ' + 'Remaining Time: ' + timeDiff;
+    document.getElementById('queue').appendChild(drinkListItem).appendChild(stopbutton).appendChild(startbutton);
+  });
+  // (3) Include the amount of minutes remaining.
+}
+
+// var startbutton=document.getElementById('startbutton');
+// var stopbutton=document.getElement('stopbutton');
+// startbutton.addEventListener('click', onButtonClick_start);
+// stopbutton.addEventListener('click', onButtonClick_stop);
+
+function timeRemaining(initialDate, minutes) {
+  var timeRefresh = new Date();
+  var timeDiff = (Math.abs(initialDate - timeRefresh))/ 60000;
+  if (timeDiff - minutes < 0)
+  {
+    return minutes-timeDiff;
+  }
+  else
+  {
+    return 0;
+  }
+}
+function onButtonClick_start(event) {
+  clearTimeout(button);
+  var interval=setInterval(renderDrinkQueue, 6000);
+}
+function onButtonClick_stop(event) {
+  alert("Clicked");
+  window.clearInterval(interval);
+}
+</script>
+</html>
