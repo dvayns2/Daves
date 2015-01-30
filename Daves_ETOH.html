@@ -1,4 +1,3 @@
-
 <html>
 
 <head>
@@ -56,8 +55,6 @@ function onButtonClick(event) {
   var strengthInput = document.getElementById('strength');//user strength
   var minutesInput = document.getElementById('minutes');//user minutes
   var drinkTypeInput = document.getElementById('drinkType');//user drinktype
-  var initialDate = Date.now();//Date + time is initialized
-  var initialTime = initialDate.toLocaleString();//get the current time
   var strength = strengthInput.value;//new var set to the strength
   var minutes = minutesInput.value;//new var set to the minutes
   var drinkType = drinkTypeInput.value;//new drinktype set to chosen drinktype
@@ -66,13 +63,14 @@ function onButtonClick(event) {
     strength: strengthInput.value,
     minutes: minutesInput.value,
     drinkType: drinkTypeInput.value,
-    initialDate: initialDate,
-    timeRemain: initialDate,
+    startTime: null,
+    endTime: null
   });
 
   strengthInput.value = '';
   minutesInput.value = '';
   drinkTypeInput.value = 'Screwdriver';
+
   renderDrinkQueue();
 }
 
@@ -81,54 +79,84 @@ function renderDrinkQueue() {
   queueElement.innerHTML = '';
 
   drinkQueue.forEach(function(drink) {
-    var strength = drink.strength;
-    var minutes = drink.minutes;
-    var drinkType = drink.drinkType;
-    var initialDate = drink.initialDate;
-    var timeRemain = drink.timeRemain;
-    var timeDiff = timeRemaining(initialDate, minutes);
-    var currentTime = Date.now();
-
+    // [dalongi] I simplified some of this, you had extra wrapper elements that weren't needed/
     var stopbutton=document.createElement('button');
-    stopbutton.setAttribute("id", "buttons")
-    var text=document.createTextNode('Done');
-    stopbutton.appendChild(text);
+    stopbutton.innerText='Done';
     var startbutton=document.createElement('button');
-    var text2=document.createTextNode('Start');
-    startbutton.appendChild(text2);
-    startbutton.setAttribute("id", "button");
-    var stopbutton_item=document.createElement('span');
-    stopbutton_item.appendChild(stopbutton);
+    startbutton.innerText='Start';
+
+    if(drink.startTime==null){ //hide and show buttons
+      startbutton.disabled=false;
+      stopbutton.disabled=true;
+    }
+    else{
+      startbutton.disabled=true;
+      startbutton.style.visibility='hidden';
+    }
+    if(drink.endTime!=0){
+      stopbutton.style.visibility='hidden';
+    }
+
+    // [dalongi] Right now you can click the start and stop buttons multiple times.
+    // This will reset the timers (overwrite startTime). You should look into how to disable
+    // the buttons:
+    // - Disable Start button when start time is already set
+    // - Disable Done button when startTime isn't set or when endTime is already set.
 
     startbutton.addEventListener('click', function(){
-      drink.initialDate=Date.now();
-      drink.timeDiff = timeRemaining(initialDate, minutes);
+      drink.startTime=Date.now();
+      renderDrinkQueue();
     });
 
     stopbutton.addEventListener('click', function(){
-      var timeDiff = timeRemaining(initialDate, minutes);
-      if(timeDiff > 0){
-        drink.timeDiff="Great job!  Celebratory shot!";
-        renderDrinkQueue();
-      }
-      else{
-        drink.timeDiff="SHAME SHAME SHAME";
-        renderDrinkQueue();
-      }
+      drink.endTime=Date.now();
+      onclick="document.getElementById"
+      renderDrinkQueue();
     });
 
+    // TODO: You might want to change the contents of the line depending on whether:
+    // - Drink has not been started
+    // - Drink is in progress (on time)
+    // - Drink is in progress (late)
+    // - Drink finished (on time)
+    // - Drink finished (late)
+    if(drink.startTime==null){
+      drink.startTime=0;
+    }
+    if(drink.endTime==null){
+      drink.endTime=0;
+    }
     var drinkListItem = document.createElement('li');
-    drinkListItem.innerText = drinkType + ': ' + strength + ' in ' + minutes + ' minutes' + ' Time Started: ' + initialDate + ' Current time: ' + currentTime + ' ' + ' Remaining Time: ' + timeDiff + ' ';
-    document.getElementById('queue').appendChild(stopbutton_item).appendChild(drinkListItem).appendChild(startbutton);
+    drinkListItem.innerText = drink.drinkType + ': ' +
+      drink.strength + ' in ' + drink.minutes + ' minutes ' +
+      ' Time Started: ' + drink.startTime +
+      ' Time Finished: ' + drink.endTime +
+      timeRemaining(drink.startTime, drink.minutes, drink.endTime);
+
+    drinkListItem.appendChild(startbutton);
+    drinkListItem.appendChild(stopbutton);
+
+    document.getElementById('queue').appendChild(drinkListItem);
   });
 }
 
-function timeRemaining(initialDate, minutes) {
+function timeRemaining(initialDate, minutes, endTime) {
   var timeRefresh = new Date();
-  var timeDiff = (Math.abs(initialDate - timeRefresh))/ 60000;
-  return Math.round(minutes-timeDiff);
+  var timeDiff = (timeRefresh-initialDate)/ 60000;
+  if(endTime!=0){
+    if(timeDiff <= minutes){
+      return " Great job! Celebration shot!";
+    }
+    else{
+      return " You stink!";
+    }
+  }
+  else if(initialDate==0) {
+    return " DRANK Pleez";
+  }
+  else {
+    return " Remaining time: " + Math.round(minutes-timeDiff);
+  }
 }
 </script>
 </html>
-
-<!-- 2 problems left...how to get it so multiple drinks are not bound to the stop/start buttons and how to change it to success/fail -->
