@@ -11,6 +11,7 @@
     display: block;
   }
 </style>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
@@ -48,27 +49,20 @@
 var button = document.getElementById('button');
 button.addEventListener('click', onButtonClick);
 
-
-// Re-render the drink queue every minute so update the times.
-var interval=setInterval(renderDrinkQueue, 6000);
-
+// var interval=setInterval(renderDrinkQueue, 6000);
 var drinkQueue = [];
-var completed_drinks = [];
 
 function onButtonClick(event) {
   var strengthInput = document.getElementById('strength');//user strength
   var minutesInput = document.getElementById('minutes');//user minutes
   var drinkTypeInput = document.getElementById('drinkType');//user drinktype
-  var initialDate = new Date;//Date + time is initialized
+  var initialDate = Date.now();//Date + time is initialized
   var initialTime = initialDate.toLocaleString();//get the current time
-
   var strength = strengthInput.value;//new var set to the strength
   var minutes = minutesInput.value;//new var set to the minutes
   var drinkType = drinkTypeInput.value;//new drinktype set to chosen drinktype
 
-  // (1) Add data about the selected drink to the queue
-
-  drinkQueue.push({ //build the queue to store the information into the list
+  drinkQueue.push({
     strength: strengthInput.value,
     minutes: minutesInput.value,
     drinkType: drinkTypeInput.value,
@@ -76,10 +70,9 @@ function onButtonClick(event) {
     timeRemain: initialDate,
   });
 
-  strengthInput.value = '';//refresh all three vars for next item to be queued
+  strengthInput.value = '';
   minutesInput.value = '';
   drinkTypeInput.value = 'Screwdriver';
-
   renderDrinkQueue();
 }
 
@@ -87,10 +80,8 @@ function renderDrinkQueue() {
   var queueElement = document.getElementById('queue');
   queueElement.innerHTML = '';
 
-  // Clear out the current queue
-  // (2) Build the list from the stored drink information.
   drinkQueue.forEach(function(drink) {
-    var strength = drink.stremngth;
+    var strength = drink.strength;
     var minutes = drink.minutes;
     var drinkType = drink.drinkType;
     var initialDate = drink.initialDate;
@@ -98,48 +89,46 @@ function renderDrinkQueue() {
     var timeDiff = timeRemaining(initialDate, minutes);
     var currentTime = Date.now();
 
-    // var startbutton=document.createElement("button");
-    // startbutton.innerHTML="Start";
     var stopbutton=document.createElement('button');
-    var text=document.createTextNode('Stop');
+    stopbutton.setAttribute("id", "buttons")
+    var text=document.createTextNode('Done');
     stopbutton.appendChild(text);
-    stopbutton.addEventListener('click', onButtonClick_stop);
     var startbutton=document.createElement('button');
     var text2=document.createTextNode('Start');
     startbutton.appendChild(text2);
-    startbutton.addEventListener('click', onButtonClick_start);
+    startbutton.setAttribute("id", "button");
+    var stopbutton_item=document.createElement('span');
+    stopbutton_item.appendChild(stopbutton);
+
+    startbutton.addEventListener('click', function(){
+      drink.initialDate=Date.now();
+      drink.timeDiff = timeRemaining(initialDate, minutes);
+    });
+
+    stopbutton.addEventListener('click', function(){
+      var timeDiff = timeRemaining(initialDate, minutes);
+      if(timeDiff > 0){
+        drink.timeDiff="Great job!  Celebratory shot!";
+        renderDrinkQueue();
+      }
+      else{
+        drink.timeDiff="SHAME SHAME SHAME";
+        renderDrinkQueue();
+      }
+    });
 
     var drinkListItem = document.createElement('li');
-    drinkListItem.innerText = drinkType + ': ' + strength + ' in ' + minutes + ' minutes' + 'Time Started: ' + initialDate + ' Current time: ' + currentTime + ' ' + 'Remaining Time: ' + timeDiff;
-    document.getElementById('queue').appendChild(drinkListItem).appendChild(stopbutton).appendChild(startbutton);
+    drinkListItem.innerText = drinkType + ': ' + strength + ' in ' + minutes + ' minutes' + ' Time Started: ' + initialDate + ' Current time: ' + currentTime + ' ' + ' Remaining Time: ' + timeDiff + ' ';
+    document.getElementById('queue').appendChild(stopbutton_item).appendChild(drinkListItem).appendChild(startbutton);
   });
-  // (3) Include the amount of minutes remaining.
 }
-
-// var startbutton=document.getElementById('startbutton');
-// var stopbutton=document.getElement('stopbutton');
-// startbutton.addEventListener('click', onButtonClick_start);
-// stopbutton.addEventListener('click', onButtonClick_stop);
 
 function timeRemaining(initialDate, minutes) {
   var timeRefresh = new Date();
   var timeDiff = (Math.abs(initialDate - timeRefresh))/ 60000;
-  if (timeDiff - minutes < 0)
-  {
-    return minutes-timeDiff;
-  }
-  else
-  {
-    return 0;
-  }
-}
-function onButtonClick_start(event) {
-  clearTimeout(button);
-  var interval=setInterval(renderDrinkQueue, 6000);
-}
-function onButtonClick_stop(event) {
-  alert("Clicked");
-  window.clearInterval(interval);
+  return Math.round(minutes-timeDiff);
 }
 </script>
 </html>
+
+<!-- 2 problems left...how to get it so multiple drinks are not bound to the stop/start buttons and how to change it to success/fail -->
