@@ -59,6 +59,8 @@ function onButtonClick(event) {
   var minutes = minutesInput.value;//new var set to the minutes
   var drinkType = drinkTypeInput.value;//new drinktype set to chosen drinktype
 
+  strengthInput.value=strength_check(strength);
+
   drinkQueue.push({
     strength: strengthInput.value,
     minutes: minutesInput.value,
@@ -97,19 +99,13 @@ function renderDrinkQueue() {
       stopbutton.style.visibility='hidden';
     }
 
-    // [dalongi] Right now you can click the start and stop buttons multiple times.
-    // This will reset the timers (overwrite startTime). You should look into how to disable
-    // the buttons:
-    // - Disable Start button when start time is already set
-    // - Disable Done button when startTime isn't set or when endTime is already set.
-
     startbutton.addEventListener('click', function(){
-      drink.startTime=Date.now();
+      drink.startTime=new Date;
       renderDrinkQueue();
     });
 
     stopbutton.addEventListener('click', function(){
-      drink.endTime=Date.now();
+      drink.endTime=new Date;
       onclick="document.getElementById"
       renderDrinkQueue();
     });
@@ -129,8 +125,8 @@ function renderDrinkQueue() {
     var drinkListItem = document.createElement('li');
     drinkListItem.innerText = drink.drinkType + ': ' +
       drink.strength + ' in ' + drink.minutes + ' minutes ' +
-      ' Time Started: ' + drink.startTime +
-      ' Time Finished: ' + drink.endTime +
+      ' Time Started: ' + display_sexy_time(drink.startTime) +
+      ' Time Finished: ' + display_sexy_time(drink.endTime) +
       timeRemaining(drink.startTime, drink.minutes, drink.endTime);
 
     drinkListItem.appendChild(startbutton);
@@ -158,5 +154,50 @@ function timeRemaining(initialDate, minutes, endTime) {
     return " Remaining time: " + Math.round(minutes-timeDiff);
   }
 }
+
+function display_sexy_time(date){
+  if(date==0){
+    return '0';
+  }
+  else{
+    var hours=date.getHours();
+    var minutes=date.getMinutes();
+    if(hours > 12)
+    {
+      hours=hours-12;
+      if(minutes < 10){
+        return hours +':0' + minutes + 'pm';
+      }
+      else{
+        return hours + ':' + minutes + 'pm';
+      }
+    }
+    else
+    {
+      if(minutes < 10){
+        return hours +':0' + minutes + 'pm';
+      }
+      else{
+        return hours + ':' + minutes + 'pm';
+      }
+    }
+  }
+}
+function strength_check(strength){
+  if(strength > 2){
+    var strength_change=window.alert("WHOA! Are you sure about " + strength + " shots?")
+    if (strength_change==true){
+      return strength;
+    }
+    else{
+      var new_strength=window.prompt("Please enter a new strength!")
+      return new_strength;
+    }
+  }
+  else{
+      return strength;
+  }
+}
+
 </script>
 </html>
